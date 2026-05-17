@@ -8,196 +8,248 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f1117;
-  --surface: #1a1c24;
-  --header-bg: linear-gradient(90deg, #1a1c24 0%, #2a2035 50%, #1f2a3a 100%);
-  --text: #e4e4e7;
-  --text-dim: #71717a;
-  --border: #27272a;
-  --now-line: #ef4444;
-  --channel-width: 120px;
-  --hour-width: 180px;
-  --row-height: 78px;
-  --header-height: 44px;
+  --bg: #0c0e14;
+  --surface: #151820;
+  --sidebar: #11131b;
+  --header-bg: linear-gradient(135deg, #151820 0%, #1f1b2e 40%, #1a2230 100%);
+  --text: #e8e8ed;
+  --text-dim: #6b6b76;
+  --text-muted: #4a4a55;
+  --border: #1e2030;
+  --now-line: #f43f5e;
+  --channel-width: 160px;
+  --hour-width: 200px;
+  --row-height: 68px;
+  --header-height: 48px;
+  --time-row-height: 38px;
+  --sidebar-header-bg: #11131b;
 }
 
 html, body { height: 100%; overflow: hidden; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   display: flex;
   flex-direction: column;
 }
 
-/* Top bar */
+/* ── Top bar ── */
 .topbar {
   height: var(--header-height);
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 12px;
+  padding: 0 20px;
+  gap: 16px;
   flex-shrink: 0;
+  z-index: 20;
 }
 .topbar h1 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
-.topbar .date {
-  font-size: 13px;
+.topbar .logo-icon { font-size: 18px; }
+
+/* Date pills */
+.date-pills {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 0 8px;
+}
+.date-pills::-webkit-scrollbar { display: none; }
+.date-pill {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text-dim);
-}
-.topbar .status {
-  margin-left: auto;
   font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+}
+.date-pill:hover { color: var(--text); border-color: var(--border); }
+.date-pill.active {
+  background: rgba(244,63,94,0.15);
+  color: #f43f5e;
+  border-color: rgba(244,63,94,0.3);
+  font-weight: 600;
+}
+.date-pill.today { font-weight: 600; }
+
+/* Status */
+.status {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--text-dim);
+  flex-shrink: 0;
 }
-.topbar .status .dot {
-  width: 8px;
-  height: 8px;
+.status .dot {
+  width: 7px; height: 7px;
   border-radius: 50%;
   background: #22c55e;
 }
-.topbar .status.offline .dot { background: #ef4444; }
+.status.offline .dot { background: #ef4444; }
+.status .record-count {
+  background: rgba(244,63,94,0.18);
+  color: #f43f5e;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  display: none;
+}
+.status .record-count.show { display: inline; }
 
-/* Date navigation */
-.datenav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.datenav button {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-}
-.datenav button:hover {
-  background: var(--border);
-}
-
-/* Grid container */
+/* ── Grid wrapper ── */
 .grid-wrap {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* Time header row */
-.timeheader {
-  height: 40px;
+/* Time header row — sits above scroll body */
+.time-header-row {
+  height: var(--time-row-height);
   background: var(--header-bg);
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-shrink: 0;
+  position: relative;
 }
-.timeheader .channel-spacer {
+.time-header-row .channel-spacer {
   width: var(--channel-width);
   flex-shrink: 0;
   border-right: 1px solid var(--border);
+  background: var(--sidebar-header-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
-.timeheader .time-slots {
+.time-header-row .time-strip {
   display: flex;
   position: relative;
   flex: 1;
   overflow: hidden;
 }
-.timeheader .hour-label {
+.time-header-row .hour-label {
   width: var(--hour-width);
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding-left: 8px;
-  font-size: 12px;
+  padding-left: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-dim);
+  letter-spacing: 0.02em;
 }
 
-/* Scrollable body */
+/* ── Scroll body ── */
 .scroll-body {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: scroll;
+  overflow: auto;
   position: relative;
   scroll-behavior: smooth;
 }
-.scroll-body::-webkit-scrollbar { height: 6px; width: 6px; }
-.scroll-body::-webkit-scrollbar-track { background: var(--bg); }
+.scroll-body::-webkit-scrollbar { height: 5px; width: 5px; }
+.scroll-body::-webkit-scrollbar-track { background: transparent; }
 .scroll-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-/* Channel rows */
-.channel-row {
+.grid-inner {
+  position: relative;
   display: flex;
+}
+
+/* ── Channel sidebar ── */
+.channel-sidebar {
+  width: var(--channel-width);
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+.channel-sidebar .ch-cell {
+  height: var(--row-height);
+  background: var(--sidebar);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 10px;
+}
+.channel-sidebar .ch-cell .ch-number {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  min-width: 18px;
+  text-align: right;
+}
+.channel-sidebar .ch-cell .ch-logo {
+  width: 36px; height: 36px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  flex-shrink: 0;
+}
+.channel-sidebar .ch-cell .ch-name {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Programs area ── */
+.programs-area {
+  position: relative;
+  flex: 1;
+}
+.programs-area .ch-row {
   height: var(--row-height);
   border-bottom: 1px solid var(--border);
   position: relative;
 }
-.channel-row:nth-child(even) { background: rgba(255,255,255,0.015); }
-
-/* Channel name column */
-.channel-name {
-  width: var(--channel-width);
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  position: sticky;
-  left: 0;
-  z-index: 2;
-}
-.channel-logo {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  object-fit: contain;
-  background: rgba(255,255,255,0.08);
-}
-
-/* Program blocks row */
-.program-row {
-  position: relative;
-  flex: 1;
-  height: 100%;
-}
+.programs-area .ch-row:nth-child(even) { background: rgba(255,255,255,0.008); }
 
 /* Program block */
 .program {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
-  border-radius: 6px;
-  padding: 6px 10px;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 7px;
+  padding: 7px 10px;
   cursor: pointer;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,0.06);
-  transition: filter 0.15s, border-color 0.15s;
+  border: 1px solid rgba(255,255,255,0.04);
+  transition: filter 0.18s, border-color 0.18s, box-shadow 0.18s;
 }
 .program:hover {
-  filter: brightness(1.15);
-  border-color: rgba(255,255,255,0.2);
-  z-index: 5;
+  filter: brightness(1.2);
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  z-index: 6;
+}
+.program.is-recording {
+  box-shadow: inset 0 0 0 2px rgba(244,63,94,0.5);
 }
 .program .prog-title {
   font-size: 12px;
@@ -207,398 +259,704 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.program .prog-time {
-  font-size: 10px;
-  opacity: 0.7;
-  margin-top: 2px;
-}
-.program .prog-desc {
+.program .prog-subtitle {
   font-size: 10px;
   opacity: 0.55;
-  margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.program .prog-time {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 1px;
 }
 
-/* Now line */
+/* ── Now line ── */
 .now-line {
   position: absolute;
   top: 0;
-  bottom: 0;
   width: 2px;
   background: var(--now-line);
-  z-index: 10;
+  z-index: 15;
   pointer-events: none;
-  box-shadow: 0 0 8px rgba(239,68,68,0.4);
+  box-shadow: 0 0 10px rgba(244,63,94,0.5), 0 0 2px rgba(244,63,94,0.8);
 }
-.now-badge {
+.now-line .now-arrow {
   position: absolute;
-  top: 0;
+  top: -7px;
+  left: 50%;
   transform: translateX(-50%);
+  width: 14px; height: 14px;
   background: var(--now-line);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 0 0 4px 4px;
-  white-space: nowrap;
+  border-radius: 2px;
+  /* diamond shape via rotation */
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 0 0 6px rgba(244,63,94,0.6);
 }
 
-/* Program detail popup */
+/* ── Detail popup ── */
 .detail-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.65);
   z-index: 100;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
 }
 .detail-overlay.show { display: flex; }
 .detail-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  max-width: 480px;
-  width: 90%;
+  border-radius: 14px;
+  padding: 28px;
+  max-width: 520px;
+  width: 92%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
 }
-.detail-card h2 { font-size: 18px; margin-bottom: 8px; }
-.detail-card .detail-meta {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-bottom: 12px;
-}
-.detail-card .detail-desc { font-size: 14px; line-height: 1.5; color: #d4d4d8; }
-.detail-card .detail-close {
+.detail-card .close-btn {
   float: right;
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 20px;
+  font-size: 22px;
   cursor: pointer;
   line-height: 1;
+  margin: -8px -8px 0 0;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
 }
+.detail-card .close-btn:hover { background: var(--border); }
+.detail-card h2 { font-size: 18px; margin-bottom: 4px; font-weight: 700; }
+.detail-card .subtitle {
+  font-size: 13px;
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+.detail-card .detail-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.detail-card .detail-desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #c8c8d0;
+  margin-bottom: 20px;
+}
+.detail-card .detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.detail-card .btn-record,
+.detail-card .btn-cancel {
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s;
+}
+.btn-record {
+  background: #f43f5e;
+  color: #fff;
+}
+.btn-record:hover { background: #e11d48; }
+.btn-record:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-record.recording {
+  background: #22c55e;
+}
+.btn-record.recording:hover { background: #16a34a; }
+.btn-cancel {
+  background: var(--border);
+  color: var(--text-dim);
+}
+.btn-cancel:hover { background: #333; color: var(--text); }
 
-/* Loading / empty */
-.loading, .empty {
+/* Record toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #22c55e;
+  color: #000;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.toast.error { background: #ef4444; color: #fff; }
+
+/* ── Loading / empty ── */
+.loading-state, .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  padding: 60px 20px;
   color: var(--text-dim);
   font-size: 14px;
+  flex-direction: column;
+  gap: 8px;
+}
+.empty-state .spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--now-line);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive tweaks ── */
+@media (max-width: 768px) {
+  :root { --channel-width: 110px; --hour-width: 150px; }
+  .program .prog-title { font-size: 10px; }
+  .program .prog-subtitle { display: none; }
+  .channel-sidebar .ch-cell .ch-name { font-size: 10px; }
 }
 </style>
 </head>
 <body>
 
+<!-- ── Top bar ── -->
 <div class="topbar">
-  <h1>📺 EPG</h1>
-  <div class="datenav">
-    <button id="prevDay">&larr;</button>
-    <span class="date" id="dateLabel"></span>
-    <button id="nextDay">&rarr;</button>
-  </div>
+  <span class="logo-icon">📺</span>
+  <h1>EPG</h1>
+  <div class="date-pills" id="datePills"></div>
   <div class="status offline" id="statusBar">
+    <span class="record-count" id="recordCount"></span>
     <span class="dot"></span>
     <span id="statusText">Disconnected</span>
   </div>
 </div>
 
+<!-- ── Grid ── -->
 <div class="grid-wrap">
-  <div class="timeheader" id="timeHeader">
-    <div class="channel-spacer">Channels</div>
-    <div class="time-slots" id="timeSlots"></div>
+  <div class="time-header-row">
+    <div class="channel-spacer">ALL CHANNELS</div>
+    <div class="time-strip" id="timeStrip"></div>
   </div>
   <div class="scroll-body" id="scrollBody">
-    <div id="gridContent"></div>
+    <div class="grid-inner" id="gridInner">
+      <div class="channel-sidebar" id="channelSidebar"></div>
+      <div class="programs-area" id="programsArea"></div>
+    </div>
   </div>
 </div>
 
+<!-- ── Detail popup ── -->
 <div class="detail-overlay" id="detailOverlay">
-  <div class="detail-card">
-    <button class="detail-close" id="detailClose">&times;</button>
-    <h2 id="detailTitle"></h2>
-    <div class="detail-meta" id="detailMeta"></div>
-    <div class="detail-desc" id="detailDesc"></div>
-  </div>
+  <div class="detail-card" id="detailCard"></div>
 </div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
 
 <script>
-// ── State ──
+// ═══════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════
 let channels = [];
-let epgData = {};       // channel_uuid → events[]
+let epgCache = {};        // "YYYY-MM-DD" → { channelUuid → events[] }
+let scheduledRecordings = {}; // dvrUuid → { eventId, start, stop, channel }
 let currentDate = new Date();
+let currentDateStr = "";
 let refreshTimer = null;
 let isOnline = false;
 
-// ── DOM refs ──
-const $scrollBody = document.getElementById("scrollBody");
-const $gridContent = document.getElementById("gridContent");
-const $timeSlots = document.getElementById("timeSlots");
-const $dateLabel = document.getElementById("dateLabel");
-const $statusBar = document.getElementById("statusBar");
-const $statusText = document.getElementById("statusText");
-const $detailOverlay = document.getElementById("detailOverlay");
-const $detailTitle = document.getElementById("detailTitle");
-const $detailMeta = document.getElementById("detailMeta");
-const $detailDesc = document.getElementById("detailDesc");
-
-// ── Formatting ──
-const HOUR_WIDTH = 180;
+const DAYS_TO_LOAD = 7;
+const HOUR_WIDTH = 200;
 const PX_PER_MIN = HOUR_WIDTH / 60;
-const CHANNEL_WIDTH = 120;
 
+// ═══════════════════════════════════════════
+// DOM refs
+// ═══════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const scrollBody = $("scrollBody");
+const gridInner = $("gridInner");
+const channelSidebar = $("channelSidebar");
+const programsArea = $("programsArea");
+const timeStrip = $("timeStrip");
+const datePills = $("datePills");
+const statusBar = $("statusBar");
+const statusText = $("statusText");
+const recordCount = $("recordCount");
+const detailOverlay = $("detailOverlay");
+const detailCard = $("detailCard");
+const toast = $("toast");
+
+// ═══════════════════════════════════════════
+// Helpers
+// ═══════════════════════════════════════════
 function fmtDate(d) { return d.toISOString().slice(0, 10); }
 function fmtTime(ts) {
-  const d = new Date(ts * 1000);
-  return d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
-}
-function fmtDateTime(ts) {
-  const d = new Date(ts * 1000);
-  return d.toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" });
+  return new Date(ts * 1000).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
 }
 function fmtHour(h) { return String(h).padStart(2, "0") + ":00"; }
+function escapeHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str || "";
+  return d.innerHTML;
+}
 
-// Genre → color mapping (pastel on dark bg)
+function dayStartUnix(dateStr) {
+  return Math.floor(new Date(dateStr + "T00:00:00").getTime() / 1000);
+}
+function dayEndUnix(dateStr) {
+  return dayStartUnix(dateStr) + 86400;
+}
+
+// ═══════════════════════════════════════════
+// Genre colors
+// ═══════════════════════════════════════════
 const GENRE_COLORS = [
-  { r: 59, g: 130, b: 246 },  // blue — news/info
-  { r: 239, g: 68, b: 68 },   // red — movies
-  { r: 34, g: 197, b: 94 },   // green — nature/lifestyle
-  { r: 168, g: 85, b: 247 },  // purple — culture/arts
-  { r: 251, g: 146, b: 60 },  // orange — entertainment
-  { r: 236, g: 72, b: 153 },  // pink — series
-  { r: 45, g: 212, b: 191 },  // teal — docs
-  { r: 250, g: 204, b: 21 },  // yellow — sports/kids
-  { r: 148, g: 163, b: 184 }, // slate — other
+  { r: 59, g: 130, b: 246 },   // 0: blue — news
+  { r: 239, g: 68, b: 68 },    // 1: red — movies
+  { r: 34, g: 197, b: 94 },    // 2: green — nature
+  { r: 168, g: 85, b: 247 },   // 3: purple — culture
+  { r: 251, g: 146, b: 60 },   // 4: orange — entertainment
+  { r: 236, g: 72, b: 153 },   // 5: pink — series
+  { r: 45, g: 212, b: 191 },   // 6: teal — docs
+  { r: 250, g: 204, b: 21 },   // 7: yellow — sports/kids
+  { r: 148, g: 163, b: 184 },  // 8: slate — other
 ];
 
-// Simple hash for consistent color per genre
 function genreColor(contentType) {
-  if (!contentType) return GENRE_COLORS[8];
-  const types = { "film": 1, "movie": 1, "serie": 5, "series": 5,
-    "news": 0, "sport": 7, "documentary": 6, "kids": 7, "music": 4,
-    "entertainment": 4, "culture": 3, "nature": 2 };
-  const idx = types[contentType?.toLowerCase()] ?? 8;
-  const c = GENRE_COLORS[idx];
-  return c;
+  const map = { film: 1, movie: 1, serie: 5, series: 5, news: 0,
+    sport: 7, documentary: 6, kids: 7, music: 4, entertainment: 4,
+    culture: 3, nature: 2 };
+  const idx = map[(contentType || "").toLowerCase()] ?? 8;
+  return GENRE_COLORS[idx];
 }
 
-function blockStyle(evt, dayStartUnix) {
-  const c = genreColor(evt.contentType);
-  const startMin = (evt.start - dayStartUnix) / 60;
-  const durationMin = (evt.stop - evt.start) / 60;
-  const left = startMin * PX_PER_MIN;
-  const width = Math.max(durationMin * PX_PER_MIN, 8);
-  return {
-    left: `${left}px`,
-    width: `${width}px`,
-    background: `linear-gradient(135deg, rgba(${c.r},${c.g},${c.b},0.25), rgba(${c.r},${c.g},${c.b},0.12))`,
-    borderLeft: `3px solid rgba(${c.r},${c.g},${c.b},0.5)`,
-  };
-}
-
-// ── Auto-scroll to now ──
-function scrollToNow() {
-  const now = Math.floor(Date.now() / 1000);
-  const dayStart = new Date(fmtDate(currentDate) + "T00:00:00");
-  const dayStartUnix = Math.floor(dayStart.getTime() / 1000);
-  const minFromStart = (now - dayStartUnix) / 60;
-  const x = minFromStart * PX_PER_MIN - 300; // center a bit before "now"
-  $scrollBody.scrollLeft = Math.max(0, x);
-}
-
-// ── Now line ──
-function updateNowLine() {
-  document.querySelectorAll(".now-line").forEach(el => el.remove());
-  const now = Math.floor(Date.now() / 1000);
-  const dayStart = new Date(fmtDate(currentDate) + "T00:00:00");
-  const dayStartUnix = Math.floor(dayStart.getTime() / 1000);
-  const dayEndUnix = dayStartUnix + 86400;
-  if (now < dayStartUnix || now > dayEndUnix) return;
-
-  const minFromStart = (now - dayStartUnix) / 60;
-  const left = minFromStart * PX_PER_MIN;
-  const totalWidth = 24 * HOUR_WIDTH;
-
-  // Line in time header
-  const timeLine = document.createElement("div");
-  timeLine.className = "now-line";
-  timeLine.style.position = "absolute";
-  timeLine.style.top = "0";
-  timeLine.style.height = "40px";
-  timeLine.style.left = `${left}px`;
-  document.getElementById("timeSlots").appendChild(timeLine);
-
-  // Line in grid
-  const gridLine = document.createElement("div");
-  gridLine.className = "now-line";
-  gridLine.style.position = "absolute";
-  gridLine.style.top = "0";
-  gridLine.style.left = `${left}px`;
-  gridLine.style.height = `${channels.length * 78}px`;
-
-  const badge = document.createElement("div");
-  badge.className = "now-badge";
-  badge.textContent = fmtTime(now);
-  gridLine.appendChild(badge);
-
-  $gridContent.appendChild(gridLine);
-}
-
-// ── Fetch ──
+// ═══════════════════════════════════════════
+// Data loading
+// ═══════════════════════════════════════════
 async function fetchChannels() {
   const res = await fetch("/api/channel/grid");
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
-  // Filter only enabled channels, sort by number
   channels = (data.entries || [])
     .filter(c => c.enabled)
     .sort((a, b) => (a.number || 9999) - (b.number || 9999));
 }
 
-async function fetchEpg(channelUuid) {
-  const dateStr = fmtDate(currentDate);
-  const res = await fetch(`/api/epg/events/grid?channel=${channelUuid}&limit=200`);
+async function fetchEpgForDay(channelUuid, dateStr) {
+  const dayStart = dayStartUnix(dateStr);
+  const dayEnd = dayEndUnix(dateStr);
+  const res = await fetch(`/api/epg/events/grid?channel=${channelUuid}&start=${dayStart}&limit=300`);
   if (!res.ok) throw new Error("HTTP " + res.status);
   const data = await res.json();
-  epgData[channelUuid] = (data.entries || []).filter(e => {
-    // Only include events that overlap with the selected day
-    const evtDate = new Date(e.start * 1000).toISOString().slice(0, 10);
-    return evtDate === dateStr || (e.start < Math.floor(currentDate / 1000) && e.stop > Math.floor(currentDate / 1000));
-  });
+  // Filter events that overlap this day
+  return (data.entries || []).filter(e => e.start < dayEnd && e.stop > dayStart);
 }
 
-async function loadAll() {
-  try {
-    await fetchChannels();
-    const today = fmtDate(currentDate);
-    // Fetch EPG for each channel in parallel (batched for tvheadend)
-    const batchSize = 10;
-    for (let i = 0; i < channels.length; i += batchSize) {
-      const batch = channels.slice(i, i + batchSize);
-      await Promise.all(batch.map(c => fetchEpg(c.uuid)));
-    }
-    render();
-    setOnline(true);
-  } catch (err) {
-    console.error("Load failed:", err);
-    setOnline(false);
-    $gridContent.innerHTML = `<div class="empty">⚠️ Cannot reach tvheadend</div>`;
+async function loadAllDays() {
+  await fetchChannels();
+
+  // Build date list: today → +6 days
+  const dates = [];
+  const now = new Date();
+  for (let i = 0; i < DAYS_TO_LOAD; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    dates.push(fmtDate(d));
   }
+
+  // Fetch EPG for all channels × all days (batched to avoid overwhelming tvheadend)
+  const batchSize = 8;
+  for (const dateStr of dates) {
+    if (!epgCache[dateStr]) epgCache[dateStr] = {};
+    const missing = channels.filter(c => !epgCache[dateStr][c.uuid]);
+    for (let i = 0; i < missing.length; i += batchSize) {
+      const batch = missing.slice(i, i + batchSize);
+      const results = await Promise.allSettled(
+        batch.map(c => fetchEpgForDay(c.uuid, dateStr))
+      );
+      results.forEach((r, idx) => {
+        if (r.status === "fulfilled") {
+          epgCache[dateStr][batch[idx].uuid] = r.value;
+        } else {
+          epgCache[dateStr][batch[idx].uuid] = [];
+          console.warn(`Failed EPG for ${batch[idx].name}: ${r.reason}`);
+        }
+      });
+    }
+  }
+
+  // Load existing recordings
+  await loadRecordings();
+
+  // Set current date to today
+  currentDate = new Date();
+  currentDateStr = fmtDate(currentDate);
+  renderAll();
+  setOnline(true);
+}
+
+// ═══════════════════════════════════════════
+// Recordings
+// ═══════════════════════════════════════════
+async function loadRecordings() {
+  try {
+    const res = await fetch("/api/dvr/entry/grid_upcoming");
+    if (!res.ok) { scheduledRecordings = {}; return; }
+    const data = await res.json();
+    scheduledRecordings = {};
+    (data.entries || []).forEach(entry => {
+      scheduledRecordings[entry.uuid] = {
+        eventId: entry.dvb_eid,
+        start: entry.start,
+        stop: entry.stop,
+        channel: entry.channel,
+        title: entry.disp_title || "",
+      };
+    });
+  } catch {
+    scheduledRecordings = {};
+  }
+}
+
+async function createRecording(eventId) {
+  const response = await fetch("/api/record", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_id: eventId }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || data.detail || "Failed to schedule recording");
+  }
+  return data;
+}
+
+async function cancelRecording(dvrUuid) {
+  const response = await fetch("/api/record/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dvr_uuid: dvrUuid }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || data.detail || "Failed to cancel recording");
+  }
+  return data;
+}
+
+function findRecordingForEvent(eventId, channelUuid) {
+  for (const [dvrUuid, rec] of Object.entries(scheduledRecordings)) {
+    if (rec.eventId === eventId && rec.channel === channelUuid) {
+      return { dvrUuid, ...rec };
+    }
+  }
+  return null;
+}
+
+function updateRecordCountUI() {
+  const count = Object.keys(scheduledRecordings).length;
+  if (count > 0) {
+    recordCount.textContent = `⏺ ${count}`;
+    recordCount.classList.add("show");
+  } else {
+    recordCount.classList.remove("show");
+  }
+}
+
+// ═══════════════════════════════════════════
+// Toast
+// ═══════════════════════════════════════════
+function showToast(msg, isError = false) {
+  toast.textContent = msg;
+  toast.className = "toast" + (isError ? " error" : "");
+  requestAnimationFrame(() => toast.classList.add("show"));
+  clearTimeout(toast._timeout);
+  toast._timeout = setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+// ═══════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════
+function renderAll() {
+  const dateStr = currentDateStr;
+  const dayStart = dayStartUnix(dateStr);
+
+  // Time strip
+  let timeHtml = "";
+  for (let h = 0; h < 24; h++) {
+    timeHtml += `<div class="hour-label">${fmtHour(h)}</div>`;
+  }
+  timeStrip.innerHTML = timeHtml;
+
+  // Channel sidebar
+  let sidebarHtml = "";
+  channels.forEach(ch => {
+    const logoUrl = ch.icon_public_url ? `/api/${ch.icon_public_url}` : "";
+    const number = ch.number || "";
+    sidebarHtml += `<div class="ch-cell">
+      <span class="ch-number">${number}</span>
+      ${logoUrl ? `<img class="ch-logo" src="${logoUrl}" alt="" loading="lazy" onerror="this.style.display='none'">` : ""}
+      <span class="ch-name" title="${escapeHtml(ch.name)}">${escapeHtml(ch.name)}</span>
+    </div>`;
+  });
+  channelSidebar.innerHTML = sidebarHtml || `<div class="empty-state">No channels</div>`;
+
+  // Programs area
+  const totalWidth = 24 * HOUR_WIDTH;
+  let programsHtml = "";
+
+  if (channels.length === 0) {
+    programsHtml = `<div class="empty-state" style="position:absolute;width:100%">No channels found. Check tvheadend configuration.</div>`;
+  } else {
+    channels.forEach(ch => {
+      const events = (epgCache[dateStr] && epgCache[dateStr][ch.uuid]) || [];
+      programsHtml += `<div class="ch-row">`;
+
+      events.forEach(evt => {
+        const c = genreColor(evt.contentType);
+        const startMin = Math.max(0, (evt.start - dayStart) / 60);
+        const durationMin = (evt.stop - evt.start) / 60;
+        const left = startMin * PX_PER_MIN;
+        const width = Math.max(durationMin * PX_PER_MIN, 8);
+        const rec = findRecordingForEvent(evt.eventId, ch.uuid);
+        const recClass = rec ? " is-recording" : "";
+        const title = evt.title || "Unknown";
+        const subtitle = evt.subtitle ? escapeHtml(evt.subtitle) : "";
+        const desc = (evt.description || evt.summary || evt.disp_extratext || "").slice(0, 60);
+
+        programsHtml += `<div class="program${recClass}"
+          style="left:${left}px;width:${width}px;
+            background:linear-gradient(135deg, rgba(${c.r},${c.g},${c.b},0.22), rgba(${c.r},${c.g},${c.b},0.08));
+            border-left:3px solid rgba(${c.r},${c.g},${c.b},0.45);"
+          data-event-id="${evt.eventId}"
+          data-title="${escapeHtml(title)}"
+          data-subtitle="${escapeHtml(evt.subtitle || '')}"
+          data-start="${evt.start}"
+          data-stop="${evt.stop}"
+          data-desc="${escapeHtml(evt.description || evt.summary || evt.disp_extratext || '')}"
+          data-channel="${escapeHtml(ch.name)}"
+          data-channel-uuid="${ch.uuid}"
+          data-genre="${escapeHtml(evt.genre || '')}"
+          ${rec ? `data-rec-uuid="${rec.dvrUuid}"` : ""}
+          onclick="showDetail(this)">
+          <div class="prog-title">${escapeHtml(title)}</div>
+          ${subtitle ? `<div class="prog-subtitle">${subtitle}</div>` : ""}
+          <div class="prog-time">${fmtTime(evt.start)} – ${fmtTime(evt.stop)}</div>
+        </div>`;
+      });
+
+      programsHtml += `</div>`;
+    });
+  }
+
+  // Add now line to programs area
+  const now = Math.floor(Date.now() / 1000);
+  if (now >= dayStart && now < dayStart + 86400) {
+    const minFromStart = (now - dayStart) / 60;
+    const left = minFromStart * PX_PER_MIN;
+    programsHtml += `<div class="now-line" style="left:${left}px; height:${channels.length * 68}px">
+      <div class="now-arrow"></div>
+    </div>`;
+    // Also add now line in time strip
+    timeStrip.innerHTML += `<div class="now-line" style="left:${left}px;height:38px"><div class="now-arrow"></div></div>`;
+  }
+
+  programsArea.innerHTML = programsHtml;
+
+  // Date pills
+  renderDatePills();
+
+  // Record count badge
+  updateRecordCountUI();
+
+  // Auto-scroll to now
+  setTimeout(scrollToNow, 100);
+}
+
+function renderDatePills() {
+  const now = new Date();
+  const todayStr = fmtDate(now);
+  let html = "";
+  for (let i = 0; i < DAYS_TO_LOAD; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    const ds = fmtDate(d);
+    const label = d.toLocaleDateString("de-CH", { weekday: "short", day: "numeric", month: "short" });
+    const active = ds === currentDateStr ? " active" : "";
+    const today = ds === todayStr ? " today" : "";
+    html += `<button class="date-pill${active}${today}" data-date="${ds}" onclick="selectDate('${ds}')">${label}</button>`;
+  }
+  datePills.innerHTML = html;
+}
+
+function selectDate(dateStr) {
+  currentDateStr = dateStr;
+  currentDate = new Date(dateStr + "T12:00:00");
+  renderAll();
+}
+
+function scrollToNow() {
+  if (currentDateStr !== fmtDate(new Date())) return;
+  const now = Math.floor(Date.now() / 1000);
+  const dayStart = dayStartUnix(currentDateStr);
+  const minFromStart = (now - dayStart) / 60;
+  const x = minFromStart * PX_PER_MIN - 350;
+  scrollBody.scrollLeft = Math.max(0, x);
 }
 
 function setOnline(val) {
   isOnline = val;
-  $statusBar.className = "status" + (val ? "" : " offline");
-  $statusText.textContent = val ? "Connected" : "Disconnected";
+  statusBar.className = "status" + (val ? "" : " offline");
+  statusText.textContent = val ? "Connected" : "Disconnected";
 }
 
-// ── Render ──
-function render() {
-  const dayStart = new Date(fmtDate(currentDate) + "T00:00:00");
-  const dayStartUnix = Math.floor(dayStart.getTime() / 1000);
-  const totalWidth = 24 * HOUR_WIDTH;
-
-  // Time header
-  let timeHtml = "";
-  for (let h = 0; h < 24; h++) {
-    timeHtml += `<div class="hour-label" style="width:${HOUR_WIDTH}px">${fmtHour(h)}</div>`;
-  }
-  $timeSlots.innerHTML = timeHtml;
-
-  // Date label
-  $dateLabel.textContent = dayStart.toLocaleDateString("de-CH", {
-    weekday: "long", day: "2-digit", month: "long", year: "numeric"
-  });
-
-  // Channel rows
-  let html = "";
-  channels.forEach(ch => {
-    const events = epgData[ch.uuid] || [];
-    const name = ch.name || ch.channelname || "Unknown";
-    const logoUrl = ch.icon_public_url
-      ? `/api/${ch.icon_public_url}`
-      : "";
-
-    html += `<div class="channel-row">
-      <div class="channel-name">
-        ${logoUrl ? `<img class="channel-logo" src="${logoUrl}" alt="" onerror="this.style.display='none'">` : ""}
-        <span>${escapeHtml(name)}</span>
-      </div>
-      <div class="program-row" style="width:${totalWidth}px">`;
-
-    events.forEach(evt => {
-      const style = blockStyle(evt, dayStartUnix);
-      html += `<div class="program" style="left:${style.left};width:${style.width};background:${style.background};border-left:${style.borderLeft}"
-          data-title="${escapeHtml(evt.title || '')}"
-          data-start="${evt.start}"
-          data-stop="${evt.stop}"
-          data-desc="${escapeHtml(evt.description || evt.summary || '')}"
-          data-channel="${escapeHtml(name)}"
-          onclick="showDetail(this)">
-        <div class="prog-title">${escapeHtml(evt.title || "Unknown")}</div>
-        <div class="prog-time">${fmtTime(evt.start)} – ${fmtTime(evt.stop)}</div>
-        ${evt.description ? `<div class="prog-desc">${escapeHtml(evt.description.slice(0, 80))}</div>` : ""}
-      </div>`;
-    });
-
-    html += `</div></div>`;
-  });
-
-  if (channels.length === 0) {
-    html = `<div class="empty">No channels found. Check tvheadend configuration.</div>`;
-  }
-
-  $gridContent.innerHTML = html;
-
-  // Now line
-  updateNowLine();
-
-  // Auto-scroll to current time
-  setTimeout(scrollToNow, 100);
-}
-
-function escapeHtml(str) {
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-// ── Detail popup ──
+// ═══════════════════════════════════════════
+// Detail popup
+// ═══════════════════════════════════════════
 function showDetail(el) {
-  $detailTitle.textContent = el.dataset.title;
-  $detailMeta.textContent = `${fmtTime(parseInt(el.dataset.start))} – ${fmtTime(parseInt(el.dataset.stop))} | ${el.dataset.channel}`;
-  $detailDesc.textContent = el.dataset.desc || "No description available.";
-  $detailOverlay.classList.add("show");
+  const eventId = parseInt(el.dataset.eventId);
+  const channelUuid = el.dataset.channelUuid;
+  const rec = findRecordingForEvent(eventId, channelUuid);
+
+  detailCard.innerHTML = `
+    <button class="close-btn" onclick="closeDetail()">&times;</button>
+    <h2>${el.dataset.title}</h2>
+    ${el.dataset.subtitle ? `<div class="subtitle">${el.dataset.subtitle}</div>` : ""}
+    <div class="detail-meta">
+      <span>📅 ${fmtTime(parseInt(el.dataset.start))} – ${fmtTime(parseInt(el.dataset.stop))}</span>
+      <span>📡 ${el.dataset.channel}</span>
+      ${el.dataset.genre ? `<span>🏷 ${el.dataset.genre}</span>` : ""}
+    </div>
+    <div class="detail-desc">${el.dataset.desc || "No description available."}</div>
+    <div class="detail-actions">
+      ${rec
+        ? `<button class="btn-record recording" onclick="handleCancel('${rec.dvrUuid}', '${el.dataset.title}')">✅ Recording scheduled — Cancel</button>`
+        : `<button class="btn-record" onclick="handleRecord(${eventId}, '${el.dataset.title}')">🔴 Record this program</button>`
+      }
+      <button class="btn-cancel" onclick="closeDetail()">Close</button>
+    </div>
+  `;
+
+  detailOverlay.classList.add("show");
 }
-document.getElementById("detailClose").onclick = () => $detailOverlay.classList.remove("show");
-$detailOverlay.onclick = (e) => { if (e.target === $detailOverlay) $detailOverlay.classList.remove("show"); };
 
-// ── Date nav ──
-document.getElementById("prevDay").onclick = () => {
-  currentDate.setDate(currentDate.getDate() - 1);
-  loadAll();
-};
-document.getElementById("nextDay").onclick = () => {
-  currentDate.setDate(currentDate.getDate() + 1);
-  loadAll();
-};
+function closeDetail() {
+  detailOverlay.classList.remove("show");
+}
 
-// ── Keyboard ──
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") document.getElementById("prevDay").click();
-  if (e.key === "ArrowRight") document.getElementById("nextDay").click();
-  if (e.key === "Escape") $detailOverlay.classList.remove("show");
+detailOverlay.addEventListener("click", (e) => {
+  if (e.target === detailOverlay) closeDetail();
 });
 
-// ── Init ──
-loadAll().then(() => {
-  // Refresh every 60s
-  refreshTimer = setInterval(loadAll, 60000);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeDetail();
 });
+
+// ═══════════════════════════════════════════
+// Record / Cancel actions
+// ═══════════════════════════════════════════
+async function handleRecord(eventId, title) {
+  // Find the button and disable it during request
+  const btn = detailCard.querySelector(".btn-record");
+  if (btn) btn.disabled = true;
+
+  try {
+    await createRecording(eventId);
+    await loadRecordings();
+    renderAll();
+    closeDetail();
+    showToast(`🔴 Recording scheduled: ${title}`);
+  } catch (err) {
+    showToast(`Failed: ${err.message}`, true);
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function handleCancel(dvrUuid, title) {
+  const btn = detailCard.querySelector(".btn-record");
+  if (btn) btn.disabled = true;
+
+  try {
+    await cancelRecording(dvrUuid);
+    await loadRecordings();
+    renderAll();
+    closeDetail();
+    showToast(`Cancelled: ${title}`);
+  } catch (err) {
+    showToast(`Failed: ${err.message}`, true);
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════
+// Keyboard shortcuts
+// ═══════════════════════════════════════════
+document.addEventListener("keydown", (e) => {
+  if (detailOverlay.classList.contains("show")) return; // don't navigate when popup open
+  const idx = dates.findIndex(d => d === currentDateStr);
+  if (e.key === "ArrowLeft" && idx > 0) {
+    selectDate(dates[idx - 1]);
+  } else if (e.key === "ArrowRight" && idx < dates.length - 1) {
+    selectDate(dates[idx + 1]);
+  }
+});
+
+// Date list for keyboard nav
+let dates = [];
+
+// ═══════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════
+(async function init() {
+  // Show loading
+  gridInner.innerHTML = `<div class="loading-state" style="flex:1"><div class="spinner"></div>Loading EPG data…</div>`;
+  timeStrip.innerHTML = "";
+
+  // Build dates array for keyboard nav
+  const now = new Date();
+  for (let i = 0; i < DAYS_TO_LOAD; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    dates.push(fmtDate(d));
+  }
+
+  currentDateStr = dates[0];
+
+  try {
+    await loadAllDays();
+  } catch (err) {
+    console.error("Init failed:", err);
+    setOnline(false);
+    gridInner.innerHTML = `<div class="empty-state">⚠️ Cannot reach tvheadend<br><small>${escapeHtml(err.message)}</small></div>`;
+  }
+
+  // Auto-refresh every 5 minutes
+  refreshTimer = setInterval(async () => {
+    try {
+      await loadAllDays();
+    } catch { /* silence refresh errors */ }
+  }, 300000);
+})();
 </script>
 </body>
 </html>
