@@ -1,0 +1,13 @@
+{
+  "name": "tvheadend-epg",
+  "version": "1.0.0",
+  "description": "Modern grid-style EPG for tvheadend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

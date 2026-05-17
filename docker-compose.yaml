@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  epg:
+    image: ghcr.io/agent-hun/tvheadend-epg:latest
+    container_name: tvheadend-epg
+    ports:
+      - "3000:3000"
+    environment:
+      - TVHEADEND_URL=http://tvheadend:9981
+      # If your tvheadend has auth, add:
+      # - TVHEADEND_USER=username
+      # - TVHEADEND_PASS=password
+    restart: unless-stopped
+
+# ── Quick start ──
+# 1. Edit TVHEADEND_URL above to match your tvheadend server
+# 2. docker compose up -d
+# 3. Open http://localhost:3000
+#
+# ── Standalone (no compose) ──
+# docker run -d --name tvheadend-epg \
+#   -p 3000:3000 \
+#   -e TVHEADEND_URL=http://192.168.1.100:9981 \
+#   ghcr.io/agent-hun/tvheadend-epg:latest

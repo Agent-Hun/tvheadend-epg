@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPG — tvheadend</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1c24;
+  --header-bg: linear-gradient(90deg, #1a1c24 0%, #2a2035 50%, #1f2a3a 100%);
+  --text: #e4e4e7;
+  --text-dim: #71717a;
+  --border: #27272a;
+  --now-line: #ef4444;
+  --channel-width: 120px;
+  --hour-width: 180px;
+  --row-height: 78px;
+  --header-height: 44px;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top bar */
+.topbar {
+  height: var(--header-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.topbar h1 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.topbar .date {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.topbar .status {
+  margin-left: auto;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.topbar .status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+.topbar .status.offline .dot { background: #ef4444; }
+
+/* Date navigation */
+.datenav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.datenav button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.datenav button:hover {
+  background: var(--border);
+}
+
+/* Grid container */
+.grid-wrap {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Time header row */
+.timeheader {
+  height: 40px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-shrink: 0;
+}
+.timeheader .channel-spacer {
+  width: var(--channel-width);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.timeheader .time-slots {
+  display: flex;
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.timeheader .hour-label {
+  width: var(--hour-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* Scrollable body */
+.scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: scroll;
+  position: relative;
+  scroll-behavior: smooth;
+}
+.scroll-body::-webkit-scrollbar { height: 6px; width: 6px; }
+.scroll-body::-webkit-scrollbar-track { background: var(--bg); }
+.scroll-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Channel rows */
+.channel-row {
+  display: flex;
+  height: var(--row-height);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.channel-row:nth-child(even) { background: rgba(255,255,255,0.015); }
+
+/* Channel name column */
+.channel-name {
+  width: var(--channel-width);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+.channel-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.08);
+}
+
+/* Program blocks row */
+.program-row {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+
+/* Program block */
+.program {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: filter 0.15s, border-color 0.15s;
+}
+.program:hover {
+  filter: brightness(1.15);
+  border-color: rgba(255,255,255,0.2);
+  z-index: 5;
+}
+.program .prog-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.program .prog-time {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.program .prog-desc {
+  font-size: 10px;
+  opacity: 0.55;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Now line */
+.now-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--now-line);
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(239,68,68,0.4);
+}
+.now-badge {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  background: var(--now-line);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 0 0 4px 4px;
+  white-space: nowrap;
+}
+
+/* Program detail popup */
+.detail-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.detail-overlay.show { display: flex; }
+.detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 480px;
+  width: 90%;
+}
+.detail-card h2 { font-size: 18px; margin-bottom: 8px; }
+.detail-card .detail-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.detail-card .detail-desc { font-size: 14px; line-height: 1.5; color: #d4d4d8; }
+.detail-card .detail-close {
+  float: right;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Loading / empty */
+.loading, .empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📺 EPG</h1>
+  <div class="datenav">
+    <button id="prevDay">&larr;</button>
+    <span class="date" id="dateLabel"></span>
+    <button id="nextDay">&rarr;</button>
+  </div>
+  <div class="status offline" id="statusBar">
+    <span class="dot"></span>
+    <span id="statusText">Disconnected</span>
+  </div>
+</div>
+
+<div class="grid-wrap">
+  <div class="timeheader" id="timeHeader">
+    <div class="channel-spacer">Channels</div>
+    <div class="time-slots" id="timeSlots"></div>
+  </div>
+  <div class="scroll-body" id="scrollBody">
+    <div id="gridContent"></div>
+  </div>
+</div>
+
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-card">
+    <button class="detail-close" id="detailClose">&times;</button>
+    <h2 id="detailTitle"></h2>
+    <div class="detail-meta" id="detailMeta"></div>
+    <div class="detail-desc" id="detailDesc"></div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let channels = [];
+let epgData = {};       // channel_uuid → events[]
+let currentDate = new Date();
+let refreshTimer = null;
+let isOnline = false;
+
+// ── DOM refs ──
+const $scrollBody = document.getElementById("scrollBody");
+const $gridContent = document.getElementById("gridContent");
+const $timeSlots = document.getElementById("timeSlots");
+const $dateLabel = document.getElementById("dateLabel");
+const $statusBar = document.getElementById("statusBar");
+const $statusText = document.getElementById("statusText");
+const $detailOverlay = document.getElementById("detailOverlay");
+const $detailTitle = document.getElementById("detailTitle");
+const $detailMeta = document.getElementById("detailMeta");
+const $detailDesc = document.getElementById("detailDesc");
+
+// ── Formatting ──
+const HOUR_WIDTH = 180;
+const PX_PER_MIN = HOUR_WIDTH / 60;
+const CHANNEL_WIDTH = 120;
+
+function fmtDate(d) { return d.toISOString().slice(0, 10); }
+function fmtTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+}
+function fmtDateTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleString("de-CH", { dateStyle: "medium", timeStyle: "short" });
+}
+function fmtHour(h) { return String(h).padStart(2, "0") + ":00"; }
+
+// Genre → color mapping (pastel on dark bg)
+const GENRE_COLORS = [
+  { r: 59, g: 130, b: 246 },  // blue — news/info
+  { r: 239, g: 68, b: 68 },   // red — movies
+  { r: 34, g: 197, b: 94 },   // green — nature/lifestyle
+  { r: 168, g: 85, b: 247 },  // purple — culture/arts
+  { r: 251, g: 146, b: 60 },  // orange — entertainment
+  { r: 236, g: 72, b: 153 },  // pink — series
+  { r: 45, g: 212, b: 191 },  // teal — docs
+  { r: 250, g: 204, b: 21 },  // yellow — sports/kids
+  { r: 148, g: 163, b: 184 }, // slate — other
+];
+
+// Simple hash for consistent color per genre
+function genreColor(contentType) {
+  if (!contentType) return GENRE_COLORS[8];
+  const types = { "film": 1, "movie": 1, "serie": 5, "series": 5,
+    "news": 0, "sport": 7, "documentary": 6, "kids": 7, "music": 4,
+    "entertainment": 4, "culture": 3, "nature": 2 };
+  const idx = types[contentType?.toLowerCase()] ?? 8;
+  const c = GENRE_COLORS[idx];
+  return c;
+}
+
+function blockStyle(evt, dayStartUnix) {
+  const c = genreColor(evt.contentType);
+  const startMin = (evt.start - dayStartUnix) / 60;
+  const durationMin = (evt.stop - evt.start) / 60;
+  const left = startMin * PX_PER_MIN;
+  const width = Math.max(durationMin * PX_PER_MIN, 8);
+  return {
+    left: `${left}px`,
+    width: `${width}px`,
+    background: `linear-gradient(135deg, rgba(${c.r},${c.g},${c.b},0.25), rgba(${c.r},${c.g},${c.b},0.12))`,
+    borderLeft: `3px solid rgba(${c.r},${c.g},${c.b},0.5)`,
+  };
+}
+
+// ── Auto-scroll to now ──
+function scrollToNow() {
+  const now = Math.floor(Date.now() / 1000);
+  const dayStart = new Date(fmtDate(currentDate) + "T00:00:00");
+  const dayStartUnix = Math.floor(dayStart.getTime() / 1000);
+  const minFromStart = (now - dayStartUnix) / 60;
+  const x = minFromStart * PX_PER_MIN - 300; // center a bit before "now"
+  $scrollBody.scrollLeft = Math.max(0, x);
+}
+
+// ── Now line ──
+function updateNowLine() {
+  document.querySelectorAll(".now-line").forEach(el => el.remove());
+  const now = Math.floor(Date.now() / 1000);
+  const dayStart = new Date(fmtDate(currentDate) + "T00:00:00");
+  const dayStartUnix = Math.floor(dayStart.getTime() / 1000);
+  const dayEndUnix = dayStartUnix + 86400;
+  if (now < dayStartUnix || now > dayEndUnix) return;
+
+  const minFromStart = (now - dayStartUnix) / 60;
+  const left = minFromStart * PX_PER_MIN;
+  const totalWidth = 24 * HOUR_WIDTH;
+
+  // Line in time header
+  const timeLine = document.createElement("div");
+  timeLine.className = "now-line";
+  timeLine.style.position = "absolute";
+  timeLine.style.top = "0";
+  timeLine.style.height = "40px";
+  timeLine.style.left = `${left}px`;
+  document.getElementById("timeSlots").appendChild(timeLine);
+
+  // Line in grid
+  const gridLine = document.createElement("div");
+  gridLine.className = "now-line";
+  gridLine.style.position = "absolute";
+  gridLine.style.top = "0";
+  gridLine.style.left = `${left}px`;
+  gridLine.style.height = `${channels.length * 78}px`;
+
+  const badge = document.createElement("div");
+  badge.className = "now-badge";
+  badge.textContent = fmtTime(now);
+  gridLine.appendChild(badge);
+
+  $gridContent.appendChild(gridLine);
+}
+
+// ── Fetch ──
+async function fetchChannels() {
+  const res = await fetch("/api/channel/grid");
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
+  // Filter only enabled channels, sort by number
+  channels = (data.entries || [])
+    .filter(c => c.enabled)
+    .sort((a, b) => (a.number || 9999) - (b.number || 9999));
+}
+
+async function fetchEpg(channelUuid) {
+  const dateStr = fmtDate(currentDate);
+  const res = await fetch(`/api/epg/events/grid?channel=${channelUuid}&limit=200`);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  const data = await res.json();
+  epgData[channelUuid] = (data.entries || []).filter(e => {
+    // Only include events that overlap with the selected day
+    const evtDate = new Date(e.start * 1000).toISOString().slice(0, 10);
+    return evtDate === dateStr || (e.start < Math.floor(currentDate / 1000) && e.stop > Math.floor(currentDate / 1000));
+  });
+}
+
+async function loadAll() {
+  try {
+    await fetchChannels();
+    const today = fmtDate(currentDate);
+    // Fetch EPG for each channel in parallel (batched for tvheadend)
+    const batchSize = 10;
+    for (let i = 0; i < channels.length; i += batchSize) {
+      const batch = channels.slice(i, i + batchSize);
+      await Promise.all(batch.map(c => fetchEpg(c.uuid)));
+    }
+    render();
+    setOnline(true);
+  } catch (err) {
+    console.error("Load failed:", err);
+    setOnline(false);
+    $gridContent.innerHTML = `<div class="empty">⚠️ Cannot reach tvheadend</div>`;
+  }
+}
+
+function setOnline(val) {
+  isOnline = val;
+  $statusBar.className = "status" + (val ? "" : " offline");
+  $statusText.textContent = val ? "Connected" : "Disconnected";
+}
+
+// ── Render ──
+function render() {
+  const dayStart = new Date(fmtDate(currentDate) + "T00:00:00");
+  const dayStartUnix = Math.floor(dayStart.getTime() / 1000);
+  const totalWidth = 24 * HOUR_WIDTH;
+
+  // Time header
+  let timeHtml = "";
+  for (let h = 0; h < 24; h++) {
+    timeHtml += `<div class="hour-label" style="width:${HOUR_WIDTH}px">${fmtHour(h)}</div>`;
+  }
+  $timeSlots.innerHTML = timeHtml;
+
+  // Date label
+  $dateLabel.textContent = dayStart.toLocaleDateString("de-CH", {
+    weekday: "long", day: "2-digit", month: "long", year: "numeric"
+  });
+
+  // Channel rows
+  let html = "";
+  channels.forEach(ch => {
+    const events = epgData[ch.uuid] || [];
+    const name = ch.name || ch.channelname || "Unknown";
+    const logoUrl = ch.icon_public_url
+      ? `/api/${ch.icon_public_url}`
+      : "";
+
+    html += `<div class="channel-row">
+      <div class="channel-name">
+        ${logoUrl ? `<img class="channel-logo" src="${logoUrl}" alt="" onerror="this.style.display='none'">` : ""}
+        <span>${escapeHtml(name)}</span>
+      </div>
+      <div class="program-row" style="width:${totalWidth}px">`;
+
+    events.forEach(evt => {
+      const style = blockStyle(evt, dayStartUnix);
+      html += `<div class="program" style="left:${style.left};width:${style.width};background:${style.background};border-left:${style.borderLeft}"
+          data-title="${escapeHtml(evt.title || '')}"
+          data-start="${evt.start}"
+          data-stop="${evt.stop}"
+          data-desc="${escapeHtml(evt.description || evt.summary || '')}"
+          data-channel="${escapeHtml(name)}"
+          onclick="showDetail(this)">
+        <div class="prog-title">${escapeHtml(evt.title || "Unknown")}</div>
+        <div class="prog-time">${fmtTime(evt.start)} – ${fmtTime(evt.stop)}</div>
+        ${evt.description ? `<div class="prog-desc">${escapeHtml(evt.description.slice(0, 80))}</div>` : ""}
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  if (channels.length === 0) {
+    html = `<div class="empty">No channels found. Check tvheadend configuration.</div>`;
+  }
+
+  $gridContent.innerHTML = html;
+
+  // Now line
+  updateNowLine();
+
+  // Auto-scroll to current time
+  setTimeout(scrollToNow, 100);
+}
+
+function escapeHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ── Detail popup ──
+function showDetail(el) {
+  $detailTitle.textContent = el.dataset.title;
+  $detailMeta.textContent = `${fmtTime(parseInt(el.dataset.start))} – ${fmtTime(parseInt(el.dataset.stop))} | ${el.dataset.channel}`;
+  $detailDesc.textContent = el.dataset.desc || "No description available.";
+  $detailOverlay.classList.add("show");
+}
+document.getElementById("detailClose").onclick = () => $detailOverlay.classList.remove("show");
+$detailOverlay.onclick = (e) => { if (e.target === $detailOverlay) $detailOverlay.classList.remove("show"); };
+
+// ── Date nav ──
+document.getElementById("prevDay").onclick = () => {
+  currentDate.setDate(currentDate.getDate() - 1);
+  loadAll();
+};
+document.getElementById("nextDay").onclick = () => {
+  currentDate.setDate(currentDate.getDate() + 1);
+  loadAll();
+};
+
+// ── Keyboard ──
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft") document.getElementById("prevDay").click();
+  if (e.key === "ArrowRight") document.getElementById("nextDay").click();
+  if (e.key === "Escape") $detailOverlay.classList.remove("show");
+});
+
+// ── Init ──
+loadAll().then(() => {
+  // Refresh every 60s
+  refreshTimer = setInterval(loadAll, 60000);
+});
+</script>
+</body>
+</html>
